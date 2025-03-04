@@ -37,7 +37,7 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: streetmerchant-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/${{ steps.pkg.outputs.file }}
