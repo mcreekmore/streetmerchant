@@ -20,8 +20,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
+        # with:
+        #   node-version: ${{ matrix.node-version }}
 
       - name: Install packages
         run: npm install
@@ -35,7 +35,7 @@ jobs:
         with:
           entrypoint: build/src/index.js
           filename: streetmerchant-${{ matrix.os }}-${{ matrix.arch }}
-          node-version: 22
+          # node-version: ${{ matrix.node-version }}
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
 
@@ -46,6 +46,8 @@ jobs:
           path: ${{ steps.pkg.outputs.file }}
 
   release:
+    env:
+      node-version: 22
     name: Create Release and Attach Binaries
     needs: build
     runs-on: ubuntu-latest
