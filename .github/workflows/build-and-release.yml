@@ -1,0 +1,61 @@
+name: Build and Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build Binary for ${{ matrix.os }} on ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+        os: [linux, macos, win]
+        node-version: [22]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Compile project
+        run: npm run compile
+
+      - name: Build binary with pkg-action
+        id: pkg
+        uses: lando/pkg-action@v6.0.0
+        with:
+          entrypoint: build/src/index.js
+          filename: streetmerchant-${{ matrix.os }}-${{ matrix.arch }}
+          node-version: ${{ matrix.node-version }}
+          os: ${{ matrix.os }}
+          arch: ${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: streetmerchant-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/${{ steps.pkg.outputs.file }}
+
+  release:
+    name: Create Release and Attach Binaries
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
